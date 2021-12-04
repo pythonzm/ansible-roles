@@ -1,0 +1,15 @@
+---
+mysql_tar_file_name: mysql-5.7.18-linux-glibc2.5-x86_64.tar.gz
+mysql_user: mysql
+mysql_group: mysql
+mysql_port: 33060
+mysql_data_dir: /data/mysql
+mysql_base_dir: /usr/local/mysql
+mysql_log_dir: "{{ mysql_base_dir }}/logs"
+mysql_binlog_dir: "{{ mysql_log_dir }}/binlog"
+mysql_conf_dir: "{{ mysql_base_dir }}/conf"
+mysql_conf_file: "{{ mysql_conf_dir }}/my.cnf"
+mysql_confd_dir: "{{ mysql_conf_dir }}/my.cnf.d"
+mysql_confd_file: "{{ mysql_confd_dir }}/mysql-clients.cnf"
+mysql_server_id: "{{ 1000 | random }}"
+mysql_root_password: Aa123456

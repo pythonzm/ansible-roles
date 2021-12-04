@@ -1,0 +1,130 @@
+---
+- name: add mysql group
+  group:
+    name: "{{ mysql_group }}"
+    gid: 27
+    system: yes
+
+- name: add mysql user
+  user:
+    name: "{{ mysql_user }}"
+    comment: MySQL Server
+    uid: 27
+    group: "{{ mysql_group }}"
+    system: yes
+    shell: /sbin/nologin
+
+- name: copy mysql.tar.gz
+  copy:
+    src: "{{ mysql_tar_file_name }}"
+    dest: /tmp/mysql.tar.gz
+  register: filename
+
+- name: make temp directory
+  command: mktemp -d /tmp/mysql.XXXXXX
+  register: tempdir
+
+- name: Unarchive mysql.tar.gz
+  unarchive:
+    src: "{{ filename.dest }}"
+    dest: "{{ tempdir.stdout }}"
+    owner: "{{ mysql_user }}"
+    group: "{{ mysql_group }}"
+    remote_src: yes
+
+- name: get unarchive dir name
+  command: "ls {{ tempdir.stdout }}"
+  register: dir_name
+
+- name: copy mysql to basedir
+  copy:
+    src: "{{ tempdir.stdout }}/{{ dir_name.stdout }}/"
+    dest: "{{ mysql_base_dir }}/"
+    owner: "{{ mysql_user }}"
+    group: "{{ mysql_group }}"
+    remote_src: yes
+
+- name: create safe directory for import and export operations
+  file:
+    path: "{{ mysql_base_dir }}/mysql-files"
+    owner: "{{ mysql_user }}"
+    group: "{{ mysql_group }}"
+    mode: 0750
+    state: directory
+
+- name: create log dir
+  file:
+    path: "{{ mysql_log_dir }}"
+    owner: "{{ mysql_user }}"
+    group: "{{ mysql_group }}"
+    mode: 0750
+    state: directory
+
+- name: create binlog dir
+  file:
+    path: "{{ mysql_binlog_dir }}"
+    owner: "{{ mysql_user }}"
+    group: "{{ mysql_group }}"
+    mode: 0750
+    state: directory
+
+- name: create mysql data dir
+  file:
+    path: "{{ mysql_data_dir }}"
+    owner: "{{ mysql_user }}"
+    group: "{{ mysql_group }}"
+    mode: 0750
+    state: directory
+
+- name: create mysql conf dir
+  file:
+    path: "{{ mysql_confd_dir }}"
+    owner: "{{ mysql_user }}"
+    group: "{{ mysql_group }}"
+    mode: 0750
+    state: directory
+
+- name: copy my.cnf
+  template:
+    src: my.cnf.j2
+    dest: "{{ mysql_conf_file }}"
+    owner: root
+    group: root
+    mode: 0644
+  tags: update_mysql_conf
+  notify: 
+    - restart mysql
+
+- name: copy mysql-clients.cnf
+  template:
+    src: mysql-clients.cnf.j2
+    dest: "{{ mysql_confd_file }}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: copy mysqld.service
+  template:
+    src: mysqld.service.j2
+    dest: /usr/lib/systemd/system/mysqld.service
+
+- name: initialize mysql
+  shell:
+    cmd: "{{ mysql_base_dir }}/bin/mysqld --defaults-file={{ mysql_conf_file }} --initialize-insecure"
+
+- name: start mysql
+  service:
+    name: mysqld
+    state: started
+
+- name: enable mysql
+  service:
+    name: mysqld
+    enabled: yes
+
+- name: modify root password
+  shell:
+    cmd: "{{ mysql_base_dir }}/bin/mysql --skip-password -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '{{ mysql_root_password }}';\""
+
+- name: clean temp
+  command: rm -rf /tmp/mysql.*
