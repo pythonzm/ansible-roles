@@ -14,23 +14,16 @@
     system: yes
     shell: /sbin/nologin
 
-- name: copy mysql.tar.gz
-  copy:
-    src: "{{ mysql_tar_file_name }}"
-    dest: /tmp/mysql.tar.gz
-  register: filename
-
 - name: make temp directory
   command: mktemp -d /tmp/mysql.XXXXXX
   register: tempdir
 
 - name: Unarchive mysql.tar.gz
   unarchive:
-    src: "{{ filename.dest }}"
+    src: "{{ mysql_tar_file_name }}"
     dest: "{{ tempdir.stdout }}"
     owner: "{{ mysql_user }}"
     group: "{{ mysql_group }}"
-    remote_src: yes
 
 - name: get unarchive dir name
   command: "ls {{ tempdir.stdout }}"
