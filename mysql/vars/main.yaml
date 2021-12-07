@@ -37,7 +37,9 @@ mysqld_options:
   expire_logs_days: '30'                  # 5.7版本使用该参数设置binlog保存时间
   gtid_mode: 'ON'
   enforce-gtid-consistency: 'ON'
+  # 主要用于主从复制时更好的报证数据一致性
   sync_binlog: '1'
+  innodb_flush_log_at_trx_commit: '1'
 
 mysql_options:
   password: "{{ mysql_root_password }}"
