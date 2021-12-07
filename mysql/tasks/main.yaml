@@ -81,19 +81,19 @@
   template:
     src: my.cnf.j2
     dest: "{{ mysql_conf_file }}"
-    owner: root
-    group: root
+    owner: "{{ mysql_user }}"
+    group: "{{ mysql_group }}"
     mode: 0644
   tags: update_mysql_conf
-  notify: 
-    - restart mysql
+  #notify: 
+  #  - restart mysql
 
 - name: copy mysql-clients.cnf
   template:
     src: mysql-clients.cnf.j2
     dest: "{{ mysql_confd_file }}"
-    owner: root
-    group: root
+    owner: "{{ mysql_user }}"
+    group: "{{ mysql_group }}"
     mode: 0644
 
 - name: copy mysqld.service
@@ -106,9 +106,10 @@
     cmd: "{{ mysql_base_dir }}/bin/mysqld --defaults-file={{ mysql_conf_file }} --initialize-insecure"
 
 - name: start mysql
-  service:
+  systemd:
     name: mysqld
     state: started
+    daemon_reload: yes
 
 - name: enable mysql
   service:
@@ -117,7 +118,7 @@
 
 - name: modify root password
   shell:
-    cmd: "{{ mysql_base_dir }}/bin/mysql --skip-password -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '{{ mysql_root_password }}';\""
+    cmd: "{{ mysql_base_dir }}/bin/mysql -S {{ mysql_socket_file }} --skip-password -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '{{ mysql_root_password }}';\""
 
 - name: clean temp
   command: rm -rf /tmp/mysql.*

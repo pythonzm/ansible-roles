@@ -7,9 +7,47 @@ mysql_data_dir: /data/mysql
 mysql_base_dir: /usr/local/mysql
 mysql_log_dir: "{{ mysql_base_dir }}/logs"
 mysql_binlog_dir: "{{ mysql_log_dir }}/binlog"
-mysql_conf_dir: "{{ mysql_base_dir }}/conf"
+mysql_conf_dir: "{{ mysql_base_dir }}/etc"
 mysql_conf_file: "{{ mysql_conf_dir }}/my.cnf"
 mysql_confd_dir: "{{ mysql_conf_dir }}/my.cnf.d"
 mysql_confd_file: "{{ mysql_confd_dir }}/mysql-clients.cnf"
-mysql_server_id: "{{ 1000 | random }}"
+mysql_socket_file: "{{ mysql_base_dir }}/mysql.sock"
 mysql_root_password: Aa123456
+
+# 以下配置的值如果值为 1，0 或者 on，则必须使用引号，否则会被解析成 True 或者 False
+mysqld_options:
+  user: "{{ mysql_user }}"
+  port: "{{ mysql_port }}"
+  datadir: "{{ mysql_data_dir }}"
+  socket: "{{ mysql_socket_file }}"
+  pid-file: "{{ mysql_base_dir }}/mysql.pid"
+  log-error: "{{ mysql_log_dir }}/err.log"
+  secure_file_priv: "{{ mysql_base_dir }}/mysql-files"
+  log_bin: "{{ mysql_binlog_dir }}/mysql-binlog"
+  slow_query_log_file: "{{ mysql_log_dir }}/slow.log"
+  server-id: "{{ 1000 | random }}"
+  symbolic-links: '0'
+  local_infile: 'OFF'
+  default_time_zone: 'SYSTEM'
+  character_set_server: 'utf8mb4'
+  binlog_format: 'row'
+  slow_query_log: 'ON'
+  long_query_time: '1'
+  #binlog_expire_logs_seconds: 2592000  # 8.0版本使用该参数设置binlog保存时间
+  expire_logs_days: '30'                  # 5.7版本使用该参数设置binlog保存时间
+  gtid_mode: 'ON'
+  enforce-gtid-consistency: 'ON'
+  sync_binlog: '1'
+
+mysql_options:
+  password: "{{ mysql_root_password }}"
+  socket: "{{ mysql_socket_file }}"
+  prompt: '[\d]> '
+
+mysqldump_options:
+  password: "{{ mysql_root_password }}"
+  socket: "{{ mysql_socket_file }}"
+
+mysqladmin_options:
+  password: "{{ mysql_root_password }}"
+  socket: "{{ mysql_socket_file }}"

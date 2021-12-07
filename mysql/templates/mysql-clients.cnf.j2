@@ -1,19 +1,23 @@
 [mysql]
-password = {{ mysql_root_password }}
-socket = {{ mysql_base_dir }}/mysql.sock
-prompt = "[\d]> "
+{%+ for k, v in mysql_options.items() -%}
+  {{ k }}={{ v }}
+{%+ endfor %}
 
 [mysql_upgrade]
 
 [mysqladmin]
+{%+ for k, v in mysqladmin_options.items() -%}
+  {{ k }}={{ v }}
+{%+ endfor %}
 
 [mysqlbinlog]
 
 [mysqlcheck]
 
 [mysqldump]
-password = {{ mysql_root_password }}
-socket = {{ mysql_base_dir }}/mysql.sock
+{%+ for k, v in mysqldump_options.items() -%}
+  {{ k }}={{ v }}
+{%+ endfor %}
 
 [mysqlimport]
 

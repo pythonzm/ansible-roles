@@ -1,25 +1,7 @@
 [mysqld]
-user={{ mysql_user }}
-datadir={{ mysql_data_dir }}
-socket={{ mysql_base_dir }}/mysql.sock
-port={{ mysql_port }}
-symbolic-links=0
-log-error={{ mysql_log_dir }}/mysql.err
-pid-file={{ mysql_base_dir }}/mysql.pid
-secure_file_priv={{ mysql_base_dir }}/mysql-files
-local_infile=OFF
-default_time_zone=SYSTEM
-character_set_server=utf8mb4
-log_bin={{ mysql_binlog_dir }}/mysql-binlog
-binlog_format = row
-slow_query_log=ON
-slow_query_log_file={{ mysql_log_dir }}/slow.log
-long_query_time=1
-binlog_expire_logs_seconds=2592000 # binlog保持时长，默认30天
-server-id={{ mysql_server_id }}
-gtid_mode=ON
-enforce-gtid-consistency=ON
-sync_binlog=1
+{%+ for k, v in mysqld_options.items() -%}
+  {{ k }}={{ v }}
+{%+ endfor %}
 
 # include all files from the config directory
 #
