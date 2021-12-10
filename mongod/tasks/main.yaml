@@ -1,0 +1,116 @@
+---
+- name: install dependencies 
+  yum:
+    name:
+      - libcurl
+      - openssl
+      - xz-libs
+    state: present
+
+- name: add mongod group
+  group:
+    name: "{{ mongod_group }}"
+    gid: 28
+    system: yes
+
+- name: add mongod user
+  user:
+    name: "{{ mongod_user }}"
+    comment: Mongod Server
+    uid: 28
+    group: "{{ mongod_group }}"
+    system: yes
+    shell: /sbin/nologin
+
+- name: make temp directory
+  command: mktemp -d /tmp/mongod.XXXXXX
+  register: mongod_tempdir
+
+- name: Unarchive mongod.tgz
+  unarchive:
+    src: "{{ mongod_tar_file_name }}"
+    dest: "{{ mongod_tempdir.stdout }}"
+    owner: "{{ mongod_user }}"
+    group: "{{ mongod_group }}"
+
+- name: get unarchive dir name
+  command: "ls {{ mongod_tempdir.stdout }}"
+  register: mongod_dir_name
+
+- name: copy mongod to basedir
+  copy:
+    src: "{{ mongod_tempdir.stdout }}/{{ mongod_dir_name.stdout }}/"
+    dest: "{{ mongod_base_dir }}/"
+    owner: "{{ mongod_user }}"
+    group: "{{ mongod_group }}"
+    remote_src: yes
+
+- name: create log dir
+  file:
+    path: "{{ mongod_log_dir }}"
+    owner: "{{ mongod_user }}"
+    group: "{{ mongod_group }}"
+    mode: 0750
+    state: directory
+
+- name: create mongod data dir
+  file:
+    path: "{{ mongod_data_dir }}"
+    owner: "{{ mongod_user }}"
+    group: "{{ mongod_group }}"
+    mode: 0750
+    state: directory
+
+- name: create mongod conf dir
+  file:
+    path: "{{ mongod_conf_dir }}"
+    owner: "{{ mongod_user }}"
+    group: "{{ mongod_group }}"
+    mode: 0750
+    state: directory
+
+- name: copy mongod.conf
+  template:
+    src: mongod.conf.j2
+    dest: "{{ mongod_conf_file }}"
+    owner: "{{ mongod_user }}"
+    group: "{{ mongod_group }}"
+    mode: 0644
+  tags: update_mongod_conf
+  #notify: 
+  #  - restart mongod
+
+- name: copy mongodd.service
+  template:
+    src: mongod.service.j2
+    dest: /usr/lib/systemd/system/mongod.service
+
+- name: lager ulimit
+  shell: ulimit -n 65535
+
+
+# https://docs.mongodb.com/manual/tutorial/transparent-huge-pages/
+- name: disable Transparent Huge Pages (THP)
+  shell: echo never | tee /sys/kernel/mm/transparent_hugepage/enabled > /dev/null
+
+- name: also disable Transparent Huge Pages (THP)
+  shell: echo never | tee /sys/kernel/mm/transparent_hugepage/defrag > /dev/null
+
+- name: start mongod
+  systemd:
+    name: mongod
+    state: started
+    daemon_reload: yes
+
+- name: enable mongod
+  service:
+    name: mongod
+    enabled: yes
+
+- name: create admin user
+  shell:
+    cmd: "{{ mongod_base_dir }}/bin/mongo --quiet admin --eval \"printjson(db.createUser({user: '{{ mongod_admin_user }}', pwd: '{{ mongod_admin_password }}', roles: [{role: 'root', db: 'admin' }]}))\""
+  when:  mongod_authorization == "enabled"
+
+- name: clean temp
+  command: rm -rf /tmp/mongod.*

@@ -1,0 +1,65 @@
+---
+mongod_tar_file_name: mongodb-linux-x86_64-rhel70-5.0.5.tgz
+mongod_user: mongod
+mongod_group: mongod
+mongod_port: 27017
+mongod_data_dir: /data/mongod
+mongod_base_dir: /usr/local/mongod
+mongod_log_dir: "{{ mongod_base_dir }}/logs"
+mongod_log_file: "{{ mongod_log_dir }}/mongod.log"
+mongod_conf_dir: "{{ mongod_base_dir }}/etc"
+mongod_conf_file: "{{ mongod_conf_dir }}/mongod.conf"
+mongod_pid_file: "{{ mongod_base_dir }}/mongod.pid"
+
+mongod_authorization: enabled  # enabled/disabled
+mongod_admin_user: root
+mongod_admin_password: root
+
+mongod_conf_detail: |
+  # for documentation of all options, see:
+  #   http://docs.mongodb.org/manual/reference/configuration-options/
+  
+  systemLog:
+    destination: file
+    path: {{ mongod_log_file }}
+
+  processManagement:
+    fork: true  # fork and run in background
+    pidFilePath: {{ mongod_pid_file }}
+    timeZoneInfo: /usr/share/zoneinfo
+
+  net:
+    port: {{ mongod_port }}
+    bindIp: 0.0.0.0  # Enter 0.0.0.0,:: to bind to all IPv4 and IPv6 addresses or, alternatively, use the net.bindIpAll setting.
+    unixDomainSocket:
+        enabled: true
+        pathPrefix: {{ mongod_base_dir }}
+        filePermissions: 0700
+
+  security:
+    authorization: {{ mongod_authorization }}
+
+  storage:
+    dbPath: {{ mongod_data_dir }}
+    journal:
+      enabled: true
+
+  operationProfiling:
+    mode: slowOp  # off/slowOp/all
+    slowOpThresholdMs: 1000
+  # slowOpSampleRate: <double> Default: 1.0. between 0 and 1 
+  # filter: '{ op: "query", millis: { $gt: 2000 } }' When filter is set, slowOpThresholdMs and slowOpSampleRate are not used for profiling and slow-query log lines.
+
+  # replication:
+  #   oplogSizeMB: <int>  default 5% of available disk space
+  #   replSetName: rs0
+
+  # sharding:
+  #   clusterRole: shardsvr  # configsvr/shardsvr   requires the mongod instance to be running with replication
+  #   archiveMovedChunks: false
+
+  ## Enterprise-Only Options
+
+  #auditLog:
+
+  #snmp:
