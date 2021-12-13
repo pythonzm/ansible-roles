@@ -14,6 +14,9 @@ mongod_pid_file: "{{ mongod_base_dir }}/mongod.pid"
 mongod_authorization: enabled  # enabled/disabled
 mongod_admin_user: root
 mongod_admin_password: root
+mongod_key_file: "{{ mongod_base_dir }}/mongod.key" # 如果创建replset，并且启用了authorization，必须配置keyFile，否则会报错：BadValue: security.keyFile is required when authorization is enabled with replica sets
+
+mongod_replication: false
 
 mongod_conf_detail: |
   # for documentation of all options, see:
@@ -38,6 +41,7 @@ mongod_conf_detail: |
 
   security:
     authorization: {{ mongod_authorization }}
+  #  keyFile: {{ mongod_key_file }}
 
   storage:
     dbPath: {{ mongod_data_dir }}
@@ -50,9 +54,9 @@ mongod_conf_detail: |
   # slowOpSampleRate: <double> Default: 1.0. between 0 and 1 
   # filter: '{ op: "query", millis: { $gt: 2000 } }' When filter is set, slowOpThresholdMs and slowOpSampleRate are not used for profiling and slow-query log lines.
 
-  # replication:
-  #   oplogSizeMB: <int>  default 5% of available disk space
-  #   replSetName: rs0
+  #replication:
+  #  replSetName: rs0
+  #  oplogSizeMB: <int>  default 5% of available disk space
 
   # sharding:
   #   clusterRole: shardsvr  # configsvr/shardsvr   requires the mongod instance to be running with replication

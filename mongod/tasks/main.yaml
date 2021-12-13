@@ -105,6 +105,13 @@
 - name: also disable Transparent Huge Pages (THP)
   shell: echo never | tee /sys/kernel/mm/transparent_hugepage/defrag > /dev/null
 
+- name: create key file
+  shell: |
+    openssl rand -base64 756 > "{{ mongod_key_file }}"
+    chown "{{ mongod_user }}":"{{ mongod_group }}" "{{ mongod_key_file }}"
+    chmod 400 "{{ mongod_key_file }}"
+  when:  mongod_replication and mongod_authorization == "enabled"
+
 - name: start mongod
   systemd:
     name: mongod
@@ -115,6 +122,11 @@
   service:
     name: mongod
     enabled: yes
+
+- name: initiate replica set
+  shell:
+    cmd: "{{ mongod_base_dir }}/bin/mongo --quiet --eval 'printjson(rs.initiate())'"
+  when:  mongod_replication
 
 - name: create admin user
   shell:
