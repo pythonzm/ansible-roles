@@ -1,4 +1,4 @@
-#### 用于部署单机版Mongodb
+#### 用于部署单机版Mongodb或单节点的replication
 
 安装方式是直接使用官方编译好的tar包，下载地址：[https://www.mongodb.com/try/download/community?tck=docs_server](https://www.mongodb.com/try/download/community?tck=docs_server) 
 
