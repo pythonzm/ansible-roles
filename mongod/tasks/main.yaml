@@ -85,8 +85,17 @@
     src: mongod.service.j2
     dest: /usr/lib/systemd/system/mongod.service
 
+# Recommended ulimit values for mongod or mongos
+# See https://docs.mongodb.com/manual/reference/ulimit/#recommended-ulimit-settings
 - name: lager ulimit
-  shell: ulimit -n 65535
+  shell: |
+    ulimit -f unlimited
+    ulimit -t unlimited
+    ulimit -v unlimited
+    ulimit -n 64000
+    ulimit -m unlimited
+    ulimit -u 64000
+    ulimit -l unlimited
 
 
 # https://docs.mongodb.com/manual/tutorial/transparent-huge-pages/
@@ -113,4 +122,4 @@
   when:  mongod_authorization == "enabled"
 
 - name: clean temp
-  command: rm -rf /tmp/mongod.*
+  shell: rm -rf /tmp/mongod.*
