@@ -80,10 +80,10 @@
   #notify: 
   #  - restart mongod
 
-- name: copy mongodd.service
+- name: copy mongod.service
   template:
     src: mongod.service.j2
-    dest: /usr/lib/systemd/system/mongod.service
+    dest: "/usr/lib/systemd/system/{{ mongod_process_name }}.service"
 
 # Recommended ulimit values for mongod or mongos
 # See https://docs.mongodb.com/manual/reference/ulimit/#recommended-ulimit-settings
@@ -114,13 +114,13 @@
 
 - name: start mongod
   systemd:
-    name: mongod
+    name: "{{ mongod_process_name }}"
     state: started
     daemon_reload: yes
 
 - name: enable mongod
   service:
-    name: mongod
+    name: "{{ mongod_process_name }}"
     enabled: yes
 
 - name: initiate replica set

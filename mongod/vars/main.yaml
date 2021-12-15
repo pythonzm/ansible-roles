@@ -1,17 +1,18 @@
 ---
 mongod_tar_file_name: mongodb-linux-x86_64-rhel70-5.0.5.tgz
+mongod_process_name: mongod2 # 如果服务器上已经部署了mongo，并且进程名称是mongod，为了防止再次部署会覆盖原来内容
 mongod_user: mongod
 mongod_group: mongod
-mongod_port: 27017
-mongod_data_dir: /data/mongod
-mongod_base_dir: /usr/local/mongod
+mongod_port: 27018
+mongod_data_dir: "/data/{{ mongod_process_name }}"
+mongod_base_dir: "/usr/local/{{ mongod_process_name }}"
 mongod_log_dir: "{{ mongod_base_dir }}/logs"
 mongod_log_file: "{{ mongod_log_dir }}/mongod.log"
 mongod_conf_dir: "{{ mongod_base_dir }}/etc"
 mongod_conf_file: "{{ mongod_conf_dir }}/mongod.conf"
 mongod_pid_file: "{{ mongod_base_dir }}/mongod.pid"
 
-mongod_authorization: enabled  # enabled/disabled
+mongod_authorization: disabled  # enabled/disabled
 mongod_admin_user: root
 mongod_admin_password: root
 mongod_key_file: "{{ mongod_base_dir }}/mongod.key" # 如果创建replset，并且启用了authorization，必须配置keyFile，否则会报错：BadValue: security.keyFile is required when authorization is enabled with replica sets
