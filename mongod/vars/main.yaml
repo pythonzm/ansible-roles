@@ -1,9 +1,9 @@
 ---
 mongod_tar_file_name: mongodb-linux-x86_64-rhel70-5.0.5.tgz
-mongod_process_name: mongod2 # 如果服务器上已经部署了mongo，并且进程名称是mongod，为了防止再次部署会覆盖原来内容
+mongod_process_name: mongod # 如果服务器上已经部署了mongo，并且进程名称是mongod，为了防止再次部署会覆盖原来内容
 mongod_user: mongod
 mongod_group: mongod
-mongod_port: 27018
+mongod_port: 27017
 mongod_data_dir: "/data/{{ mongod_process_name }}"
 mongod_base_dir: "/usr/local/{{ mongod_process_name }}"
 mongod_log_dir: "{{ mongod_base_dir }}/logs"
@@ -34,7 +34,9 @@ mongod_conf_detail: |
 
   net:
     port: {{ mongod_port }}
-    bindIp: 0.0.0.0  # Enter 0.0.0.0,:: to bind to all IPv4 and IPv6 addresses or, alternatively, use the net.bindIpAll setting.
+    bindIp: localhost,{{ inventory_hostname }}  # Enter 0.0.0.0,:: to bind to all IPv4 and IPv6 addresses or, alternatively, use the net.bindIpAll setting.
+    bindIpAll: false  # 设置为true，等同于监听0.0.0.0，如果ipv6为true，则也将监听所有ipv6地址
+    ipv6: false
     unixDomainSocket:
         enabled: true
         pathPrefix: {{ mongod_base_dir }}
