@@ -125,12 +125,12 @@
 
 - name: initiate replica set
   shell:
-    cmd: "{{ mongod_base_dir }}/bin/mongo --host={{ inventory_hostname }} --port={{ mongod_port }} --quiet --eval 'printjson(rs.initiate())'"
+    cmd: "{{ mongod_base_dir }}/bin/mongo --port={{ mongod_port }} --quiet --eval 'printjson(rs.initiate())'"
   when:  mongod_replication
 
 - name: create admin user
   shell:
-    cmd: "{{ mongod_base_dir }}/bin/mongo --host={{ inventory_hostname }} --port={{ mongod_port }} --quiet admin --eval \"printjson(db.createUser({user: '{{ mongod_admin_user }}', pwd: '{{ mongod_admin_password }}', roles: [{role: 'root', db: 'admin' }]}))\""
+    cmd: "{{ mongod_base_dir }}/bin/mongo --port={{ mongod_port }} --quiet admin --eval \"printjson(db.createUser({user: '{{ mongod_admin_user }}', pwd: '{{ mongod_admin_password }}', roles: [{role: 'root', db: 'admin' }]}))\""
   when:  mongod_authorization == "enabled"
 
 - name: clean temp

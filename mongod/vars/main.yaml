@@ -18,55 +18,7 @@ mongod_admin_password: root
 mongod_key_file: "{{ mongod_base_dir }}/mongod.key" # 如果创建replset，并且启用了authorization，必须配置keyFile，否则会报错：BadValue: security.keyFile is required when authorization is enabled with replica sets
 
 mongod_replication: false
+mongod_replication_name: rs0
 
-mongod_conf_detail: |
-  # for documentation of all options, see:
-  #   http://docs.mongodb.org/manual/reference/configuration-options/
-  
-  systemLog:
-    destination: file
-    path: {{ mongod_log_file }}
-
-  processManagement:
-    fork: true  # fork and run in background
-    pidFilePath: {{ mongod_pid_file }}
-    timeZoneInfo: /usr/share/zoneinfo
-
-  net:
-    port: {{ mongod_port }}
-    bindIp: localhost,{{ inventory_hostname }}  # Enter 0.0.0.0,:: to bind to all IPv4 and IPv6 addresses or, alternatively, use the net.bindIpAll setting.
-    bindIpAll: false  # 设置为true，等同于监听0.0.0.0，如果ipv6为true，则也将监听所有ipv6地址
-    ipv6: false
-    unixDomainSocket:
-        enabled: true
-        pathPrefix: {{ mongod_base_dir }}
-        filePermissions: 0700
-
-  security:
-    authorization: {{ mongod_authorization }}
-  #  keyFile: {{ mongod_key_file }}
-
-  storage:
-    dbPath: {{ mongod_data_dir }}
-    journal:
-      enabled: true
-
-  operationProfiling:
-    mode: slowOp  # off/slowOp/all
-    slowOpThresholdMs: 1000
-  # slowOpSampleRate: <double> Default: 1.0. between 0 and 1 
-  # filter: '{ op: "query", millis: { $gt: 2000 } }' When filter is set, slowOpThresholdMs and slowOpSampleRate are not used for profiling and slow-query log lines.
-
-  #replication:
-  #  replSetName: rs0
-  #  oplogSizeMB: <int>  default 5% of available disk space
-
-  # sharding:
-  #   clusterRole: shardsvr  # configsvr/shardsvr   requires the mongod instance to be running with replication
-  #   archiveMovedChunks: false
-
-  ## Enterprise-Only Options
-
-  #auditLog:
-
-  #snmp:
+mongod_sharding: false
+mongod_sharding_role: shardsvr  # configsvr/shardsvr   requires the mongod instance to be running with replication
