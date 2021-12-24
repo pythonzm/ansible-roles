@@ -1,4 +1,43 @@
 ---
+- name: check mysql process
+  ignore_errors: true
+  command:
+    cmd: "systemctl status {{ mysql_process_name }}"
+  register: service_state
+
+- name: exit if the mysql_process is already exsits
+  fail:
+    msg: "the process {{ mysql_process_name }} is already exsits on instance {{ inventory_hostname }}"
+  when: service_state.rc != 4  # 如果进程存在，但是是停止状态，则响应码是3
+
+- name: check mysql datadir and basedir 
+  ignore_errors: true
+  shell:
+    cmd: "ls {{ mysql_data_dir }} || ls {{ mysql_base_dir }}"
+  register: dir_result
+
+- name: exit if the datadir or basedir is already exsits
+  fail:
+    msg: "the datadir {{ mysql_data_dir }} or the basedir {{ mysql_base_dir }} is already exsits on instance {{ inventory_hostname }}"
+  when: dir_result is succeeded
+
+- name: install tool 
+  yum:
+    name:
+      - iproute
+    state: present
+
+- name: check mysql port 
+  ignore_errors: true
+  shell:
+    cmd: "ss -tnl|grep -w {{ mysql_port }}"
+  register: port
+
+- name: exit if the port is in use
+  fail:
+    msg: "the port {{ mysql_port }} is already used on instance {{ inventory_hostname }}"
+  when: port is succeeded
+
 - name: add mysql group
   group:
     name: "{{ mysql_group }}"
@@ -99,7 +138,7 @@
 - name: copy mysqld.service
   template:
     src: mysqld.service.j2
-    dest: /usr/lib/systemd/system/mysqld.service
+    dest: "/usr/lib/systemd/system/{{ mysql_process_name }}.service"
 
 - name: initialize mysql
   shell:
@@ -107,13 +146,13 @@
 
 - name: start mysql
   systemd:
-    name: mysqld
+    name: "{{ mysql_process_name }}"
     state: started
     daemon_reload: yes
 
 - name: enable mysql
   service:
-    name: mysqld
+    name: "{{ mysql_process_name }}"
     enabled: yes
 
 - name: modify root password

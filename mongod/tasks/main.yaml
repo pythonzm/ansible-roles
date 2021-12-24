@@ -1,4 +1,43 @@
 ---
+- name: check mongod process
+  ignore_errors: true
+  command:
+    cmd: "systemctl status {{ mongod_process_name }}"
+  register: service_state
+
+- name: exit if the mongod_process is already exsits
+  fail:
+    msg: "the process {{ mongod_process_name }} is already exsits on instance {{ inventory_hostname }}"
+  when: service_state.rc != 4  # 如果进程存在，但是是停止状态，则响应码是3
+
+- name: check mongod datadir and basedir 
+  ignore_errors: true
+  shell:
+    cmd: "ls {{ mongod_data_dir }} || ls {{ mongod_base_dir }}"
+  register: dir_result
+
+- name: exit if the datadir or basedir is already exsits
+  fail:
+    msg: "the datadir {{ mongod_data_dir }} or the basedir {{ mongod_base_dir }} is already exsits on instance {{ inventory_hostname }}"
+  when: dir_result is succeeded
+
+- name: install tool 
+  yum:
+    name:
+      - iproute
+    state: present
+
+- name: check mongod port 
+  ignore_errors: true
+  shell:
+    cmd: "ss -tnl|grep -w {{ mongod_port }}"
+  register: port
+
+- name: exit if the port is in use
+  fail:
+    msg: "the port {{ mongod_port }} is already used on instance {{ inventory_hostname }}"
+  when: port is succeeded
+
 - name: install dependencies 
   yum:
     name:

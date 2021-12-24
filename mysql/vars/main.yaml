@@ -1,10 +1,11 @@
 ---
 mysql_tar_file_name: mysql-5.7.18-linux-glibc2.5-x86_64.tar.gz
+mysql_process_name: mysqld # 如果服务器上已经部署了mysql，并且进程名称是mysql，为了防止再次部署会覆盖原来内容
 mysql_user: mysql
 mysql_group: mysql
-mysql_port: 33060
-mysql_data_dir: /data/mysql
-mysql_base_dir: /usr/local/mysql
+mysql_port: 3306
+mysql_data_dir: "/data/{{ mysql_process_name }}"
+mysql_base_dir: "/usr/local/{{ mysql_process_name }}"
 mysql_log_dir: "{{ mysql_base_dir }}/logs"
 mysql_binlog_dir: "{{ mysql_log_dir }}/binlog"
 mysql_conf_dir: "{{ mysql_base_dir }}/etc"
