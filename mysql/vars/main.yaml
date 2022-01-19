@@ -20,6 +20,7 @@ mysqld_options:
   user: "{{ mysql_user }}"
   port: "{{ mysql_port }}"
   datadir: "{{ mysql_data_dir }}"
+  basedir: "{{ mysql_base_dir }}"
   socket: "{{ mysql_socket_file }}"
   pid-file: "{{ mysql_base_dir }}/mysql.pid"
   log-error: "{{ mysql_log_dir }}/err.log"
