@@ -1,0 +1,75 @@
+worker_processes auto;
+user  {{ nginx_user }};
+error_log {{ nginx_log_dir }}/error.log;
+pid {{ nginx_pid_file }};
+
+events {
+    worker_connections 65535;
+}
+
+http {
+    server_tokens off;
+    #geoip2 /usr/share/GeoIP/GeoLite2-City.mmdb {
+    #  auto_reload 5m;
+    #  $country_name source=$http_x_forwarded_for country names zh-CN;
+    #  $city_name source=$http_x_forwarded_for city names zh-CN;
+    #  $region_name source=$http_x_forwarded_for subdivisions 0 names zh-CN;
+    #}
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '$upstream_addr'
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+   log_format json escape=json '{"@timestamp":"$time_iso8601",'
+                    '"timestamp":"$time_iso8601",'
+                    '"host":"$server_addr",'
+                    '"clientip":"$remote_addr",'
+                    '"request_method":"$request_method",'
+                    '"size":$body_bytes_sent,'
+                    '"responsetime":$request_time,'
+                    '"upstreamtime":$upstream_response_time,'
+                    '"upstreamhost":"$upstream_addr",'
+                    '"http_host":"$host",'
+                    '"url":"$uri",'
+                    '"xff":"$http_x_forwarded_for",'
+                    '"referer":"$http_referer",'
+                    '"agent":"$http_user_agent",'
+                    #'"country_name":"$country_name",'
+                    #'"region_name":"$region_name",'
+                    #'"city_name":"$city_name",'
+                    '"status":"$status"}';
+
+
+    access_log  {{ nginx_log_dir }}/access.log  json;
+
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
+    types_hash_max_size 2048;
+    large_client_header_buffers 4 16k;
+    client_max_body_size 300m;
+    client_body_buffer_size 128k;
+    proxy_connect_timeout 600;
+    proxy_read_timeout 600;
+    proxy_send_timeout 600;
+    proxy_buffer_size 64k;
+    proxy_buffers   4 32k;
+    proxy_busy_buffers_size 64k;
+    proxy_temp_file_write_size 64k;
+
+    gzip  on;
+    gzip_min_length 1k;
+    gzip_buffers 4 16k;
+    gzip_http_version 1.0;
+    gzip_comp_level 5;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_vary on;
+    #gzip_types mime.types;
+    gzip_types *;
+    gzip_disable     "MSIE [1-6]\.";
+
+    default_type        application/octet-stream;
+    include {{ nginx_upstream_dir }}/*.conf;
+    include {{ nginx_vhost_dir }}/*.conf;
+}

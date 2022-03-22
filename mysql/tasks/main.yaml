@@ -76,45 +76,19 @@
     group: "{{ mysql_group }}"
     remote_src: yes
 
-- name: create safe directory for import and export operations
+- name: create related dirs
   file:
-    path: "{{ mysql_base_dir }}/mysql-files"
+    path: "{{ item }}"
     owner: "{{ mysql_user }}"
     group: "{{ mysql_group }}"
     mode: 0750
     state: directory
-
-- name: create log dir
-  file:
-    path: "{{ mysql_log_dir }}"
-    owner: "{{ mysql_user }}"
-    group: "{{ mysql_group }}"
-    mode: 0750
-    state: directory
-
-- name: create binlog dir
-  file:
-    path: "{{ mysql_binlog_dir }}"
-    owner: "{{ mysql_user }}"
-    group: "{{ mysql_group }}"
-    mode: 0750
-    state: directory
-
-- name: create mysql data dir
-  file:
-    path: "{{ mysql_data_dir }}"
-    owner: "{{ mysql_user }}"
-    group: "{{ mysql_group }}"
-    mode: 0750
-    state: directory
-
-- name: create mysql conf dir
-  file:
-    path: "{{ mysql_confd_dir }}"
-    owner: "{{ mysql_user }}"
-    group: "{{ mysql_group }}"
-    mode: 0750
-    state: directory
+  loop:
+  - "{{ mysql_base_dir }}/mysql-files"
+  - "{{ mysql_log_dir }}"
+  - "{{ mysql_binlog_dir }}"
+  - "{{ mysql_data_dir }}"
+  - "{{ mysql_confd_dir }}"
 
 - name: copy my.cnf
   template:

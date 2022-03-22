@@ -1,0 +1,150 @@
+---
+- name: check nginx process
+  ignore_errors: true
+  command:
+    cmd: "systemctl status {{ nginx_process_name }}"
+  register: service_state
+
+- name: exit if the nginx_process is already exsits
+  fail:
+    msg: "the process {{ nginx_process_name }} is already exsits on instance {{ inventory_hostname }}"
+  when: service_state.rc != 4  # 如果进程存在，但是是停止状态，则响应码是3
+
+- name: check nginx prefixdir 
+  ignore_errors: true
+  shell:
+    cmd: "ls {{ nginx_prefix_dir }}"
+  register: dir_result
+
+- name: exit if the prefixdir is already exsits
+  fail:
+    msg: "the prefixdir {{ nginx_prefix_dir }} is already exsits on instance {{ inventory_hostname }}"
+  when: dir_result is succeeded
+
+- name: check nginx port 
+  ignore_errors: true
+  shell:
+    cmd: "ss -tnl|grep -w {{ nginx_port }}"
+  register: port
+
+- name: exit if the port is in use
+  fail:
+    msg: "the port {{ nginx_port }} is already used on instance {{ inventory_hostname }}"
+  when: port is succeeded
+
+- name: install dependency
+  yum:
+    name:
+      - gcc
+      - gcc-c++
+      - libtool
+      - make
+      - libtool
+      - zlib
+      - zlib-devel
+      - openssl
+      - openssl-devel
+      - pcre
+      - pcre-devel
+      - iproute
+    state: present
+
+- name: add nginx group
+  group:
+    name: "{{ nginx_group }}"
+    system: yes
+
+- name: add nginx user
+  user:
+    name: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    system: yes
+    shell: /sbin/nologin
+
+- name: download nginx
+  get_url: 
+    url: "{{ nginx_file_url }}"
+    dest: "{{ nginx_src_dir }}" 
+    validate_certs: no
+
+- name: untar nginx
+  unarchive:
+    src: "{{ nginx_src_file }}"
+    dest: "/tmp"
+    creates: "/tmp/nginx-{{ nginx_version }}"
+
+- name: configure nginx
+  shell: 
+    cmd: "{{ item }}"
+    chdir: "/tmp/nginx-{{ nginx_version }}/"
+  loop:
+    - "{{ nginx_configure_command }}"
+    - make
+    - make install
+
+- name: set the owner of the nginx directory.
+  file: 
+    path: "{{ nginx_prefix_dir }}"
+    state: directory 
+    owner: "{{ nginx_user }}" 
+    group: "{{ nginx_group }}"
+    recurse: yes
+
+- name: create nginx dir soft link.
+  file: 
+    src: "{{ nginx_prefix_dir }}"
+    dest: "{{ nginx_link_dir }}"
+    owner: "{{ nginx_user }}" 
+    group: "{{ nginx_group }}"
+    state: link
+
+- name: create nginx bin soft link.
+  file: 
+    src: "{{ nginx_link_dir }}/sbin/nginx"
+    dest: "/usr/local/bin/nginx"
+    state: link
+
+- name: create related dir
+  file:
+    path: "{{ item }}"
+    mode: 0750
+    owner: "{{ nginx_user }}" 
+    group: "{{ nginx_group }}"
+    state: directory
+  loop:
+  - "{{ nginx_vhost_dir }}"
+  - "{{ nginx_upstream_dir }}"
+  - "{{ nginx_ssl_dir }}"
+
+- name: copy nginx.conf
+  template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_conf_file }}"
+    mode: 0644
+  tags: update_nginx_conf
+  #notify: 
+  #  - restart nginx
+
+- name: copy nginx.service
+  template:
+    src: nginx.service.j2
+    dest: "/usr/lib/systemd/system/{{ nginx_process_name }}.service"
+
+- name: start nginx
+  systemd:
+    name: "{{ nginx_process_name }}"
+    state: started
+    daemon_reload: yes
+
+- name: enable nginx
+  service:
+    name: "{{ nginx_process_name }}"
+    enabled: yes
+
+- name: clean temp
+  command: "rm -rf /tmp/nginx-{{ nginx_version }}"
+
+- name: setup nginx logrotate conf file.
+  template:
+    dest: "/etc/logrotate.d/nginx"
+    src: nginx.logrotate.j2

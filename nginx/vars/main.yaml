@@ -1,0 +1,30 @@
+---
+nginx_process_name: "nginx" # 如果服务器上已经部署了nginx，并且进程名称是nginx，为了防止再次部署会覆盖原来内容
+nginx_version: "1.12.1"
+nginx_file_url: "https://nginx.org/download/nginx-{{ nginx_version }}.tar.gz"
+nginx_user: "nginx"
+nginx_group: "nginx"
+nginx_port: 80
+nginx_prefix_dir: "/usr/local/nginx-{{ nginx_version }}"
+nginx_src_dir: "/usr/local/src"
+nginx_src_file: "{{ nginx_src_dir }}/nginx-{{ nginx_version }}.tar.gz"
+nginx_link_dir: "/usr/local/{{ nginx_process_name }}"
+nginx_log_dir: "{{ nginx_prefix_dir }}/logs"
+nginx_conf_dir: "{{ nginx_prefix_dir }}/conf"
+nginx_conf_file: "{{ nginx_conf_dir }}/nginx.conf"
+nginx_vhost_dir: "{{ nginx_conf_dir }}/vhost"
+nginx_upstream_dir: "{{ nginx_conf_dir }}/upstream"
+nginx_ssl_dir: "{{ nginx_conf_dir }}/ssl"
+nginx_pid_file: "{{ nginx_prefix_dir }}/nginx.pid"
+nginx_configure_command: >
+  ./configure 
+  --prefix={{ nginx_prefix_dir }}
+  --user={{ nginx_user }}
+  --group={{ nginx_group }}
+  --with-stream
+  --with-http_ssl_module
+  --with-http_flv_module
+  --with-http_stub_status_module
+  --with-http_gzip_static_module
+  --with-http_realip_module
+  --with-pcre

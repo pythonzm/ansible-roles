@@ -84,29 +84,17 @@
     group: "{{ mongod_group }}"
     remote_src: yes
 
-- name: create log dir
+- name: create related dir
   file:
-    path: "{{ mongod_log_dir }}"
+    path: "{{ item }}"
     owner: "{{ mongod_user }}"
     group: "{{ mongod_group }}"
     mode: 0750
     state: directory
-
-- name: create mongod data dir
-  file:
-    path: "{{ mongod_data_dir }}"
-    owner: "{{ mongod_user }}"
-    group: "{{ mongod_group }}"
-    mode: 0750
-    state: directory
-
-- name: create mongod conf dir
-  file:
-    path: "{{ mongod_conf_dir }}"
-    owner: "{{ mongod_user }}"
-    group: "{{ mongod_group }}"
-    mode: 0750
-    state: directory
+  loop:
+  - "{{ mongod_log_dir }}"
+  - "{{ mongod_data_dir }}"
+  - "{{ mongod_conf_dir }}"
 
 - name: copy mongod.conf
   template:
