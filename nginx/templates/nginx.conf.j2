@@ -1,5 +1,5 @@
 worker_processes auto;
-user  {{ nginx_user }};
+#user  {{ nginx_user }}; # the "user" directive makes sense only if the master process runs with super-user privileges
 error_log {{ nginx_log_dir }}/error.log;
 pid {{ nginx_pid_file }};
 
