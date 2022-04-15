@@ -4,8 +4,6 @@ After=syslog.target network-online.target remote-fs.target nss-lookup.target
 Wants=network-online.target
 
 [Service]
-User={{ nginx_user }}
-Group={{ nginx_group }}
 Type=forking
 PIDFile={{ nginx_pid_file }}
 ExecStartPre={{ nginx_link_dir }}/sbin/nginx -t

@@ -73,3 +73,15 @@ http {
     include {{ nginx_upstream_dir }}/*.conf;
     include {{ nginx_vhost_dir }}/*.conf;
 }
+
+# Tcp
+stream {
+    log_format main '$remote_addr $time_iso8601 '
+                    '$protocol $status $bytes_sent $bytes_received '
+                    '$session_time "$upstream_addr" '
+                    '"$upstream_bytes_sent" "$upstream_bytes_received" "$upstream_connect_time"';
+    server {
+      listen 3306;
+      proxy_pass 127.0.0.1:3306;
+    }
+}
