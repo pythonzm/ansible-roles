@@ -69,7 +69,8 @@ http {
     gzip_types *;
     gzip_disable     "MSIE [1-6]\.";
 
-    default_type        application/octet-stream;
+    #default_type        application/octet-stream;
+    include mime.types;
     include {{ nginx_upstream_dir }}/*.conf;
     include {{ nginx_vhost_dir }}/*.conf;
 }
